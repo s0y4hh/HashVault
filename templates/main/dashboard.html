@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Your Vault | HashVault{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto bg-white p-8 rounded shadow">
+    <h2 class="text-2xl font-bold mb-6">Your Vault</h2>
+    <div class="overflow-x-auto mb-8">
+        <table class="min-w-full text-sm">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2">Filename</th>
+                    <th class="px-4 py-2">File Hash</th>
+                    <th class="px-4 py-2">Encryption</th>
+                    <th class="px-4 py-2">Encryption Key</th>
+                    <th class="px-4 py-2">Permissions</th>
+                    <th class="px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ file.filename }}</td>
+                    <td class="px-4 py-2">
+                        <span class="font-mono">{{ file.file_hash[:8] }}... </span>
+                        <button onclick="navigator.clipboard.writeText('{{ file.file_hash }}')" class="text-blue-600 hover:underline text-xs">Copy</button>
+                    </td>
+                    <td class="px-4 py-2">{{ file.encryption_method or 'None' }}</td>
+                    <td class="px-4 py-2">
+                        {% if file.encryption_key %}
+                        <button onclick="showKeyModal('{{ file.file_hash }}')" class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">View Key</button>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        {% set perm = file.permissions[0] %}
+                        {% if perm.permission_type == 'public' %}Public{% elif perm.permission_type == 'private' %}Private{% else %}{{ perm.specific_users }}{% endif %}
+                    </td>
+                    <td class="px-4 py-2 space-x-2">
+                        <form method="POST" action="{{ url_for('files.edit_permissions', file_hash=file.file_hash) }}" class="inline">
+                            <select name="permission" class="border rounded px-2 py-1 text-xs">
+                                <option value="private" {% if perm.permission_type == 'private' %}selected{% endif %}>Private</option>
+                                <option value="public" {% if perm.permission_type == 'public' %}selected{% endif %}>Public</option>
+                                <option value="specific" {% if perm.permission_type == 'specific' %}selected{% endif %}>Specific</option>
+                            </select>
+                            <input type="text" name="specific_users" value="{{ perm.specific_users or '' }}" placeholder="Usernames" class="border rounded px-2 py-1 text-xs" style="width: 80px;">
+                            <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs">Save</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('files.delete_file', file_hash=file.file_hash) }}" class="inline">
+                            <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <h3 class="font-semibold mb-2">Download History</h3>
+            <table class="min-w-full text-xs">
+                <thead><tr class="bg-gray-100"><th class="px-2 py-1">Filename</th><th class="px-2 py-1">File Hash</th><th class="px-2 py-1">Date</th></tr></thead>
+                <tbody>
+                {% for h in download_history %}
+                <tr class="border-b"><td class="px-2 py-1">{{ h.filename }}</td><td class="px-2 py-1 font-mono">{{ h.file_hash[:8] }}...</td><td class="px-2 py-1">{{ h.timestamp.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <h3 class="font-semibold mb-2">Upload History</h3>
+            <table class="min-w-full text-xs">
+                <thead><tr class="bg-gray-100"><th class="px-2 py-1">Filename</th><th class="px-2 py-1">File Hash</th><th class="px-2 py-1">Date</th></tr></thead>
+                <tbody>
+                {% for h in upload_history %}
+                <tr class="border-b"><td class="px-2 py-1">{{ h.filename }}</td><td class="px-2 py-1 font-mono">{{ h.file_hash[:8] }}...</td><td class="px-2 py-1">{{ h.timestamp.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Modal for viewing encryption key -->
+<div id="key-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded shadow max-w-sm w-full">
+        <h3 class="text-lg font-bold mb-2">View Encryption Key</h3>
+        <form id="key-form">
+            <input type="password" name="password" placeholder="Re-enter your password" class="w-full px-3 py-2 border rounded mb-2" required>
+            <input type="hidden" name="file_hash" id="modal-file-hash">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">Reveal Key</button>
+        </form>
+        <div id="key-result" class="mt-2 text-green-700 font-mono"></div>
+        <button onclick="closeKeyModal()" class="mt-4 w-full bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Close</button>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function showKeyModal(fileHash) {
+    document.getElementById('key-modal').classList.remove('hidden');
+    document.getElementById('modal-file-hash').value = fileHash;
+    document.getElementById('key-result').textContent = '';
+}
+function closeKeyModal() {
+    document.getElementById('key-modal').classList.add('hidden');
+}
+document.getElementById('key-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const fileHash = document.getElementById('modal-file-hash').value;
+    const password = this.password.value;
+    const res = await fetch(`/files/view_key/${fileHash}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `password=${encodeURIComponent(password)}`
+    });
+    const data = await res.json();
+    if (data.key) {
+        document.getElementById('key-result').textContent = data.key;
+    } else {
+        document.getElementById('key-result').textContent = data.error || 'Error';
+    }
+});
+</script>
+{% endblock %}

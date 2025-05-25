@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Flask DB Init",
+			"command": "flask db init && flask db migrate -m 'init' && flask db upgrade",
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"args": []
+		}
+	]
+}

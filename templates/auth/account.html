@@ -1,0 +1,75 @@
+{% extends 'base.html' %} {% block title %}Account Settings | HashVault{%
+endblock %} {% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded shadow">
+  <h2 class="text-2xl font-bold mb-6">Account Settings</h2>
+  <div class="mb-6">
+    <h3 class="font-semibold mb-2">Two-Factor Authentication (2FA)</h3>
+    {% if current_user.is_2fa_enabled %}
+    <form method="POST">
+      <button
+        name="disable_2fa"
+        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+      >
+        Disable 2FA
+      </button>
+    </form>
+    <div class="mt-4">
+      <strong>2FA is enabled.</strong>
+    </div>
+    {% else %}
+    <form method="POST">
+      <button
+        name="enable_2fa"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        Enable 2FA
+      </button>
+    </form>
+    {% if current_user.twofa_secret %}
+    <div class="mt-4">
+      <p>Scan this QR code with your authenticator app:</p>
+      <img
+        src="{{ url_for('auth.twofa_qr') }}"
+        alt="2FA QR Code"
+        class="my-4 mx-auto"
+      />
+      <p class="text-sm text-gray-600">
+        Or use this secret:
+        <span class="font-mono">{{ current_user.twofa_secret }}</span>
+      </p>
+    </div>
+    {% endif %} {% endif %}
+  </div>
+  <div class="mb-6">
+    <h3 class="font-semibold mb-2">API Key</h3>
+    <div class="flex items-center space-x-2">
+      <input
+        type="text"
+        readonly
+        value="{{ current_user.api_key }}"
+        class="w-full px-3 py-2 border rounded font-mono bg-gray-100"
+      />
+      <button
+        onclick="navigator.clipboard.writeText('{{ current_user.api_key }}')"
+        class="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+      >
+        Copy
+      </button>
+    </div>
+    <form method="POST" class="mt-2">
+      <button
+        name="regenerate_api_key"
+        class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+      >
+        Regenerate API Key
+      </button>
+    </form>
+  </div>
+  <div>
+    <h3 class="font-semibold mb-2">Email</h3>
+    <div class="px-3 py-2 border rounded bg-gray-100">
+      {{ current_user.email }}
+    </div>
+  </div>
+</div>
+{% endblock %}

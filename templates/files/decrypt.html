@@ -1,0 +1,61 @@
+{% extends 'base.html' %} {% block title %}Decrypt File | HashVault{% endblock
+%} {% block content %}
+<div class="max-w-lg mx-auto bg-white p-8 rounded shadow">
+  <h2 class="text-2xl font-bold mb-6">Decrypt a File</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <div class="mb-4">
+      <label class="block text-gray-700">Encrypted File</label>
+      <input
+        type="file"
+        name="file"
+        class="w-full px-3 py-2 border rounded"
+        required
+      />
+    </div>
+    <div class="mb-4">
+      <label class="block text-gray-700">Encryption Algorithm</label>
+      <select name="algorithm" class="w-full px-3 py-2 border rounded" required>
+        <option value="aes256">AES-256</option>
+        <option value="fernet">Fernet</option>
+        <option value="chacha20">ChaCha20</option>
+        <option value="pdfpw">PDF Password</option>
+      </select>
+    </div>
+    <div class="mb-4" id="key-field">
+      <label class="block text-gray-700">Decryption Key</label>
+      <input type="text" name="key" class="w-full px-3 py-2 border rounded" />
+    </div>
+    <div class="mb-4" id="pdfpw-field" style="display: none">
+      <label class="block text-gray-700">PDF Password</label>
+      <input
+        type="text"
+        name="pdf_password"
+        class="w-full px-3 py-2 border rounded"
+      />
+    </div>
+    <div class="mb-4">
+      <button
+        type="submit"
+        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+      >
+        Decrypt
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  const algoSelect = document.querySelector('select[name="algorithm"]');
+  const keyField = document.getElementById("key-field");
+  const pdfpwField = document.getElementById("pdfpw-field");
+  algoSelect.addEventListener("change", function () {
+    if (this.value === "pdfpw") {
+      keyField.style.display = "none";
+      pdfpwField.style.display = "";
+    } else {
+      keyField.style.display = "";
+      pdfpwField.style.display = "none";
+    }
+  });
+</script>
+{% endblock %}

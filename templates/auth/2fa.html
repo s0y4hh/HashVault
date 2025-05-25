@@ -1,0 +1,20 @@
+{% extends 'base.html' %} {% block title %}2FA Verification | HashVault{%
+endblock %} {% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded shadow">
+  <h2 class="text-2xl font-bold mb-6">Two-Factor Authentication</h2>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-4">
+      {{ form.token.label(class_="block text-gray-700") }} {{
+      form.token(class_="w-full px-3 py-2 border rounded focus:outline-none
+      focus:ring", placeholder="Enter 2FA code") }} {% for error in
+      form.token.errors %}<span class="text-red-600 text-sm">{{ error }}</span
+      >{% endfor %}
+    </div>
+    <div class="mb-4">
+      {{ form.submit(class_="w-full bg-blue-600 text-white py-2 rounded
+      hover:bg-blue-700") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

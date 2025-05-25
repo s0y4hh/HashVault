@@ -1,0 +1,39 @@
+{% extends 'base.html' %} {% block title %}Hash Search | HashVault{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto bg-white p-8 rounded shadow">
+  <form method="POST" class="mb-6">
+    {{ form.hidden_tag() }}
+    <input
+      type="text"
+      name="file_hash"
+      value="{{ form.file_hash.data or '' }}"
+      placeholder="Search file hash"
+      class="w-full px-4 py-3 border rounded focus:outline-none focus:ring text-lg"
+      maxlength="64"
+      minlength="64"
+      required
+    />
+    <button
+      type="submit"
+      class="w-full mt-4 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+    >
+      Search
+    </button>
+  </form>
+  {% if file_info %}
+  <div class="bg-green-50 p-4 rounded shadow mb-4">
+    <div class="font-semibold">File found:</div>
+    <div><strong>Filename:</strong> {{ file_info.filename }}</div>
+    <div><strong>Size:</strong> {{ file_info.file_size }} bytes</div>
+    <div><strong>Type:</strong> {{ file_info.file_type }}</div>
+    <a
+      href="{{ url_for('files.download', file_hash=file_info.file_hash) }}"
+      class="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >Download</a
+    >
+  </div>
+  {% elif error %}
+  <div class="bg-red-100 text-red-800 p-4 rounded shadow">{{ error }}</div>
+  {% endif %}
+</div>
+{% endblock %}
